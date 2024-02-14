@@ -9,3 +9,5 @@ build --incompatible_enable_cc_toolchain_resolution
 # build --features=-supports_dynamic_linker
 # Not needed after https://github.com/grailbio/bazel-toolchain/pull/229.
 build --cxxopt=-std=c++20 --host_cxxopt=-std=c++20
+build --cxxopt=-stdlib=libstdc++ --host_cxxopt=-stdlib=libstdc++
+build --features=layering_check

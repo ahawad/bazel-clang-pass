@@ -2,6 +2,26 @@ load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain", "use_c
 load("@rules_cc//cc:action_names.bzl", "CPP_LINK_EXECUTABLE_ACTION_NAME", "CPP_LINK_NODEPS_DYNAMIC_LIBRARY_ACTION_NAME", "CPP_LINK_STATIC_LIBRARY_ACTION_NAME", "C_COMPILE_ACTION_NAME")
 load(":dict.bzl", "expand_dict_value_locations")
 
+def _is_link_shared(ctx):
+    return hasattr(ctx.attr, "linkshared") and ctx.attr.linkshared
+
+def _get_cc_runtimes(ctx, is_library):
+    if is_library:
+        return []
+
+    runtimes = [ctx.attr.link_extra_lib]
+
+    if ctx.fragments.cpp.custom_malloc != None:
+        runtimes.append(ctx.attr._default_malloc)
+    else:
+        runtimes.append(ctx.attr.malloc)
+
+    return runtimes
+
+def _get_providers(ctx):
+    all_deps = ctx.attr.deps + _get_cc_runtimes(ctx, _is_link_shared(ctx))
+    return [dep[CcInfo] for dep in all_deps if CcInfo in dep]
+
 def get_cc_user_link_flags(ctx):
     """Get the current target's linkopt flags
 
@@ -122,6 +142,7 @@ def _cc_binary_with_plugin_impl(ctx):
     # First, build the plugins
     plugins = []
     for plugin in ctx.attr.plugins:
+        print(plugin[CcSharedLibraryInfo].linker_input.libraries[0])
         plugins.append(plugin[CcSharedLibraryInfo].linker_input.libraries[0].dynamic_library)
     source_files = ctx.files.srcs
     object_file = ctx.actions.declare_file(ctx.label.name + ".o")

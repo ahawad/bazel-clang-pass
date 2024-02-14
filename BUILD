@@ -1,14 +1,15 @@
 load("@//bzl:cc_with_plugin.bzl", "cc_binary_with_plugin")
 
+cc_import(
+    name = "llvm",
+    hdrs = ["@llvm_toolchain_llvm//:all_includes"],
+    includes = ["external/toolchains_llvm~override~llvm~llvm_toolchain_llvm/include"],
+)
+
 cc_library(
     name = "plugin",
     srcs = ["plugin.cpp"],
-    hdrs = ["plugin.h"],
-    deps = [
-        "@llvm-project//clang:driver",
-        "@llvm-project//clang:frontend",
-        "@llvm-project//clang:tooling",
-    ],
+    deps = [":llvm"]
 )
 
 cc_shared_library(
